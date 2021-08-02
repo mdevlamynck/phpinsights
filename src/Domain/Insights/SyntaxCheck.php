@@ -41,7 +41,7 @@ final class SyntaxCheck extends Insight implements HasDetails, GlobalInsight
         $toAnalyse = $this->getTarget();
 
         $cmdLine = sprintf(
-            '%s --no-colors --no-progress --json %s %s',
+            'composer exec -- %s --no-colors --no-progress --json %s %s',
             $this->getBinary(),
             implode(' ', $this->getShellExcludeArgs()),
             $toAnalyse
@@ -68,17 +68,11 @@ final class SyntaxCheck extends Insight implements HasDetails, GlobalInsight
 
     private function getBinary(): string
     {
-        $parentPath = $this->composerBinaryFolderFind(dirname(__DIR__, 3));
-
         if (DIRECTORY_SEPARATOR === '\\') {
-            return $parentPath . '\parallel-lint.bat';
+            return 'parallel-lint.bat';
         }
 
-        return sprintf(
-            '%s %s',
-            escapeshellcmd((string) Config::getExecutablePath('php')),
-            escapeshellarg($parentPath . '/parallel-lint')
-        );
+        return 'parallel-lint';
     }
 
     /**
@@ -110,22 +104,5 @@ final class SyntaxCheck extends Insight implements HasDetails, GlobalInsight
         }
 
         return '.';
-    }
-
-    /**
-     * Recursively search for composer binary folder path
-     */
-    private function composerBinaryFolderFind(string $directory): string
-    {
-        $composerBinaryFolder = DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'bin';
-
-        if (file_exists($directory . $composerBinaryFolder)) {
-            return $directory . $composerBinaryFolder;
-        }
-        if (dirname($directory) === $directory) {
-            throw new \RuntimeException('Unable to find composer binary folder');
-        }
-
-        return $this->composerBinaryFolderFind(dirname($directory));
     }
 }
